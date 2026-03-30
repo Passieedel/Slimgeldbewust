@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Financieel vrij calculator – bereken wanneer jij stopt met werken</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --clr-bg: #F7F5F0;
+  --clr-surface: #FFFFFF;
+  --clr-border: #E2DDD5;
+  --clr-text: #1C1916;
+  --clr-muted: #7A736A;
+  --clr-accent: #1D6A4A;
+  --clr-accent-light: #EAF3EE;
+  --clr-amber: #9C5A0A;
+  --clr-amber-light: #FDF3E3;
+  --clr-red-light: #FDEDED;
+  --radius: 12px;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--clr-bg);
+  color: var(--clr-text);
+  min-height: 100vh;
+  padding: 3rem 1.5rem;
+}
+
+.container { max-width: 640px; margin: 0 auto; }
+
+h1 {
+  font-family: 'Lora', serif;
+  font-size: clamp(1.4rem, 4vw, 1.9rem);
+  font-weight: 600;
+  line-height: 1.25;
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  font-size: 0.875rem;
+  color: var(--clr-muted);
+  margin-bottom: 2.5rem;
+  line-height: 1.6;
+}
+
+.card {
+  background: var(--clr-surface);
+  border: 1px solid var(--clr-border);
+  border-radius: var(--radius);
+  padding: 1.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.card-title {
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--clr-muted);
+  margin-bottom: 1.25rem;
+}
+
+.slider-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0 0.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.slider-row:last-child { margin-bottom: 0; }
+
+.slider-label {
+  font-size: 0.875rem;
+  color: var(--clr-text);
+  margin-bottom: 6px;
+}
+
+.slider-label span { font-size: 0.8rem; color: var(--clr-muted); }
+
+.slider-value {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--clr-text);
+  text-align: right;
+  white-space: nowrap;
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--clr-border);
+  outline: none;
+  cursor: pointer;
+  grid-column: 1 / -1;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--clr-accent);
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  transition: transform 0.1s;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+input[type="range"]::-moz-range-thumb {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--clr-accent);
+  border: 2px solid white;
+}
+
+.age-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 1.25rem;
+}
+
+.age-row label { font-size: 0.875rem; color: var(--clr-text); flex: 1; }
+
+.age-input {
+  width: 72px;
+  padding: 6px 10px;
+  font-size: 0.875rem;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  color: var(--clr-text);
+  background: var(--clr-bg);
+  border: 1px solid var(--clr-border);
+  border-radius: 6px;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.age-input:focus { border-color: var(--clr-accent); }
+
+hr.divider {
+  border: none;
+  border-top: 1px solid var(--clr-border);
+  margin: 1.25rem 0;
+}
+
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 1.25rem;
+}
+
+.result-tile {
+  background: var(--clr-bg);
+  border-radius: 8px;
+  padding: 0.875rem;
+}
+
+.result-tile-label {
+  font-size: 0.72rem;
+  color: var(--clr-muted);
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+
+.result-tile-value {
+  font-size: 1.15rem;
+  font-weight: 500;
+  color: var(--clr-text);
+  line-height: 1.2;
+}
+
+.result-tile-sub {
+  font-size: 0.7rem;
+  color: var(--clr-muted);
+  margin-top: 3px;
+}
+
+.result-tile.highlight {
+  background: var(--clr-accent-light);
+  border: 1px solid #B6D9C6;
+}
+
+.result-tile.highlight .result-tile-value { color: var(--clr-accent); }
+.result-tile.highlight .result-tile-label { color: #3B8A62; }
+
+.age-result-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 1.25rem;
+}
+
+.income-breakdown {
+  background: var(--clr-bg);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.income-breakdown-title {
+  font-size: 0.72rem;
+  color: var(--clr-muted);
+  margin-bottom: 10px;
+}
+
+.income-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  padding: 3px 0;
+}
+
+.dot {
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  margin-right: 7px;
+  flex-shrink: 0;
+}
+
+.dot-green { background: #1D9E75; }
+.dot-amber { background: #EF9F27; }
+.dot-blue  { background: #378ADD; }
+.dot-total { background: var(--clr-text); }
+
+.income-row .amount { font-weight: 500; color: var(--clr-text); }
+.income-divider { border: none; border-top: 1px solid var(--clr-border); margin: 6px 0; }
+
+.progress-wrap { margin-bottom: 1rem; }
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: var(--clr-muted);
+  margin-bottom: 7px;
+}
+
+.progress-header strong { font-weight: 500; color: var(--clr-text); }
+
+.progress-bar-bg {
+  background: var(--clr-border);
+  border-radius: 4px;
+  height: 8px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.35s ease, background 0.35s ease;
+}
+
+.verdict-box {
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  font-size: 0.875rem;
+  line-height: 1.65;
+  transition: background 0.3s;
+  border: 1px solid var(--clr-border);
+  background: var(--clr-bg);
+  color: var(--clr-muted);
+}
+
+.verdict-box.vrij    { background: var(--clr-accent-light); color: var(--clr-accent); border-color: #B6D9C6; }
+.verdict-box.dichtbij{ background: #F0F7EC; color: #3B6D11; border-color: #C8DFB1; }
+.verdict-box.onderweg{ background: var(--clr-amber-light); color: var(--clr-amber); border-color: #F5D9A4; }
+
+footer {
+  margin-top: 2rem;
+  font-size: 0.75rem;
+  color: var(--clr-muted);
+  line-height: 1.6;
+  text-align: center;
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <h1>Financieel vrij calculator</h1>
+  <p class="subtitle">Bereken hoeveel vermogen jij nodig hebt om te stoppen met werken — en op welke leeftijd je dat doel bereikt.</p>
+
+  <div class="card">
+    <div class="card-title">Jouw situatie</div>
+
+    <div class="age-row">
+      <label>Huidige leeftijd</label>
+      <input type="number" id="age" class="age-input" min="16" max="80" value="30"> jaar
+    </div>
+
+    <div class="slider-row">
+      <div><div class="slider-label">Maandelijkse uitgaven <span>(netto)</span></div></div>
+      <div class="slider-value" id="expenses-out">€ 2.000</div>
+      <input type="range" id="expenses" min="500" max="6000" step="50" value="2000">
+    </div>
+
+    <div class="slider-row">
+      <div><div class="slider-label">Huidig belegd vermogen</div></div>
+      <div class="slider-value" id="wealth-out">€ 0</div>
+      <input type="range" id="wealth" min="0" max="2000000" step="5000" value="0">
+    </div>
+
+    <div class="slider-row">
+      <div><div class="slider-label">Maandelijkse inleg</div></div>
+      <div class="slider-value" id="inleg-out">€ 500</div>
+      <input type="range" id="inleg" min="0" max="5000" step="50" value="500">
+    </div>
+
+    <hr class="divider">
+    <div class="card-title">Rendement</div>
+
+    <div class="slider-row">
+      <div><div class="slider-label">Koersgroei / rente</div></div>
+      <div class="slider-value" id="return-out">4,0%</div>
+      <input type="range" id="ret" min="0" max="12" step="0.5" value="4">
+    </div>
+
+    <div class="slider-row">
+      <div><div class="slider-label">Dividendrendement</div></div>
+      <div class="slider-value" id="dividend-out">2,0%</div>
+      <input type="range" id="dividend" min="0" max="10" step="0.25" value="2">
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Resultaat</div>
+
+    <div class="results-grid">
+      <div class="result-tile">
+        <div class="result-tile-label">Benodigd vermogen</div>
+        <div class="result-tile-value" id="needed">€ 400.000</div>
+        <div class="result-tile-sub">om financieel vrij te zijn</div>
+      </div>
+      <div class="result-tile">
+        <div class="result-tile-label">Passief inkomen nu</div>
+        <div class="result-tile-value" id="passive">€ 0 / mnd</div>
+        <div class="result-tile-sub">uit huidig vermogen</div>
+      </div>
+      <div class="result-tile">
+        <div class="result-tile-label">Tekort / overschot</div>
+        <div class="result-tile-value" id="gap">— </div>
+        <div class="result-tile-sub">vermogen</div>
+      </div>
+    </div>
+
+    <div class="age-result-row">
+      <div class="result-tile highlight">
+        <div class="result-tile-label">Doelleeftijd</div>
+        <div class="result-tile-value" id="target-age">—</div>
+        <div class="result-tile-sub">jaar oud</div>
+      </div>
+      <div class="result-tile highlight">
+        <div class="result-tile-label">Jaren tot vrijheid</div>
+        <div class="result-tile-value" id="years-left">—</div>
+        <div class="result-tile-sub">jaar vanaf nu</div>
+      </div>
+    </div>
+
+    <div class="income-breakdown">
+      <div class="income-breakdown-title">Maandelijks passief inkomen (bij doelbereiking)</div>
+      <div class="income-row">
+        <span><span class="dot dot-green"></span>Koersgroei / rente</span>
+        <span class="amount" id="inc-return">€ 0</span>
+      </div>
+      <div class="income-row">
+        <span><span class="dot dot-amber"></span>Dividend</span>
+        <span class="amount" id="inc-dividend">€ 0</span>
+      </div>
+      <hr class="income-divider">
+      <div class="income-row">
+        <span><span class="dot dot-total"></span><strong>Totaal passief</strong></span>
+        <span class="amount" id="inc-total">€ 0</span>
+      </div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-header">
+        <span>Voortgang naar financiële vrijheid</span>
+        <strong id="pct-label">0%</strong>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="bar" style="width:0%; background:#D85A30;"></div>
+      </div>
+    </div>
+
+    <div class="verdict-box" id="verdict">Vul je gegevens in om jouw situatie te berekenen.</div>
+  </div>
+
+  <footer>
+    Berekening op basis van de 4%-vuistregel (Trinity Study) met samengesteld rendement en maandelijkse inleg.<br>
+    Dit is geen financieel advies. Rendementen uit het verleden bieden geen garantie voor de toekomst.
+  </footer>
+
+</div>
+<script>
+function fmt(n) {
+  return '€\u00A0' + Math.round(Math.abs(n)).toLocaleString('nl-NL');
+}
+
+function calcYearsToFire(wealth, inleg, totalRateAnnual, needed) {
+  if (wealth >= needed) return 0;
+  if (totalRateAnnual <= 0 && inleg <= 0) return null;
+  const r = totalRateAnnual / 100 / 12;
+  let w = wealth;
+  for (let m = 1; m <= 12 * 100; m++) {
+    w = w * (1 + r) + inleg;
+    if (w >= needed) return m / 12;
+  }
+  return null;
+}
+
+function update() {
+  const age    = Math.max(16, Math.min(80, parseInt(document.getElementById('age').value) || 30));
+  const exp    = parseInt(document.getElementById('expenses').value);
+  const wealth = parseInt(document.getElementById('wealth').value);
+  const inleg  = parseInt(document.getElementById('inleg').value);
+  const ret    = parseFloat(document.getElementById('ret').value);
+  const div    = parseFloat(document.getElementById('dividend').value);
+
+  document.getElementById('expenses-out').textContent = fmt(exp);
+  document.getElementById('wealth-out').textContent   = fmt(wealth);
+  document.getElementById('inleg-out').textContent    = fmt(inleg);
+  document.getElementById('return-out').textContent   = ret.toFixed(1).replace('.', ',') + '%';
+  document.getElementById('dividend-out').textContent = div.toFixed(2).replace('.', ',') + '%';
+
+  const totalRate = ret + div;
+  const needed    = totalRate > 0 ? (exp * 12) / (totalRate / 100) : 0;
+
+  const incReturnNow    = (wealth * (ret / 100)) / 12;
+  const incDividendNow  = (wealth * (div / 100)) / 12;
+  const totalPassiveNow = incReturnNow + incDividendNow;
+
+  const incReturnGoal   = needed > 0 ? (needed * (ret / 100)) / 12 : 0;
+  const incDividendGoal = needed > 0 ? (needed * (div / 100)) / 12 : 0;
+  const totalPassiveGoal = incReturnGoal + incDividendGoal;
+
+  const pct  = needed > 0 ? Math.min(100, Math.round((wealth / needed) * 100)) : 0;
+  const gapV = needed - wealth;
+
+  const yearsRaw = calcYearsToFire(wealth, inleg, totalRate, needed);
+  const yearsInt = yearsRaw !== null ? Math.ceil(yearsRaw) : null;
+  const targetAge = yearsInt !== null ? age + yearsInt : null;
+
+  document.getElementById('needed').textContent   = needed > 0 ? fmt(needed) : '—';
+  document.getElementById('passive').textContent  = fmt(totalPassiveNow) + ' / mnd';
+  document.getElementById('gap').textContent      = needed > 0 ? (gapV <= 0 ? '+' + fmt(-gapV) : '-\u00A0' + fmt(gapV)) : '—';
+  document.getElementById('inc-return').textContent   = fmt(incReturnGoal) + ' / mnd';
+  document.getElementById('inc-dividend').textContent = fmt(incDividendGoal) + ' / mnd';
+  document.getElementById('inc-total').textContent    = fmt(totalPassiveGoal) + ' / mnd';
+  document.getElementById('pct-label').textContent    = pct + '%';
+
+  if (targetAge !== null) {
+    document.getElementById('target-age').textContent = targetAge + ' jaar';
+    document.getElementById('years-left').textContent = yearsInt === 0 ? 'Nu al!' : yearsInt + ' jaar';
+  } else {
+    document.getElementById('target-age').textContent = '> 100 jaar';
+    document.getElementById('years-left').textContent = 'Leg meer in';
+  }
+
+  const bar = document.getElementById('bar');
+  bar.style.width = pct + '%';
+  bar.style.background = pct >= 100 ? '#1D9E75' : pct >= 60 ? '#639922' : pct >= 30 ? '#EF9F27' : '#D85A30';
+
+  const verdict = document.getElementById('verdict');
+  verdict.className = 'verdict-box';
+
+  if (totalRate === 0 && inleg === 0) {
+    verdict.textContent = 'Stel een rendement of maandelijkse inleg in om je berekening te starten.';
+    return;
+  }
+
+  if (pct >= 100) {
+    verdict.classList.add('vrij');
+    verdict.textContent = 'Je bent al financieel vrij. Je passieve inkomen van ' + fmt(totalPassiveNow) + '/mnd dekt je uitgaven volledig — je hoeft niet meer te werken voor geld.';
+  } else if (yearsInt !== null && yearsInt <= 5) {
+    verdict.classList.add('dichtbij');
+    verdict.textContent = 'Je bent er bijna! Bij jouw huidige inleg van ' + fmt(inleg) + '/mnd bereik je financiële vrijheid over ongeveer ' + yearsInt + ' jaar — op je ' + targetAge + 'e.';
+  } else if (yearsInt !== null) {
+    verdict.classList.add('onderweg');
+    verdict.textContent = 'Op koers. Met een maandelijkse inleg van ' + fmt(inleg) + '/mnd en ' + totalRate.toFixed(1).replace('.', ',') + '% totaalrendement bereik je je doel van ' + fmt(needed) + ' op je ' + targetAge + 'e (' + yearsInt + ' jaar).';
+  } else {
+    verdict.classList.add('onderweg');
+    verdict.textContent = 'Met de huidige inleg en rendementen duurt het langer dan 100 jaar. Verhoog je maandelijkse inleg of kies een hogere beleggingsstrategie om eerder financieel vrij te worden.';
+  }
+}
+
+['expenses','wealth','inleg','ret','dividend'].forEach(id => {
+  document.getElementById(id).addEventListener('input', update);
+});
+document.getElementById('age').addEventListener('input', update);
+
+update();
+</script>
+</body>
+</html>
