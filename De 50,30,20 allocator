@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>50/30/20 Budgetverdeler | SlimGeldBewust</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --teal: #0F6E56;
+    --teal-light: #E1F5EE;
+    --teal-mid: #1D9E75;
+    --purple: #534AB7;
+    --purple-light: #EEEDFE;
+    --amber: #BA7517;
+    --amber-light: #FAEEDA;
+    --text: #1a1a1a;
+    --text-muted: #6b7280;
+    --bg: #fafaf8;
+    --surface: #ffffff;
+    --border: rgba(0,0,0,0.08);
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* Header */
+  .site-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .site-logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    color: var(--teal);
+    text-decoration: none;
+  }
+  .site-logo span { color: var(--text-muted); font-size: 14px; font-family: 'DM Sans', sans-serif; font-weight: 300; margin-left: 10px; }
+
+  /* Hero */
+  .hero {
+    background: var(--teal);
+    color: white;
+    padding: 48px 24px 64px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    width: 400px; height: 400px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+    top: -100px; right: -80px;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    width: 300px; height: 300px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+    bottom: -80px; left: -60px;
+  }
+  .hero-tag {
+    display: inline-block;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    padding: 5px 14px;
+    margin-bottom: 18px;
+    text-transform: uppercase;
+  }
+  .hero h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(32px, 6vw, 52px);
+    font-weight: 400;
+    line-height: 1.15;
+    margin-bottom: 14px;
+  }
+  .hero h1 em { font-style: italic; opacity: 0.8; }
+  .hero p {
+    font-size: 16px;
+    font-weight: 300;
+    opacity: 0.8;
+    max-width: 480px;
+    margin: 0 auto;
+    line-height: 1.65;
+  }
+
+  /* Main container */
+  .container {
+    max-width: 720px;
+    margin: -28px auto 0;
+    padding: 0 20px 60px;
+    position: relative;
+    z-index: 10;
+  }
+
+  /* Income card */
+  .income-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.09);
+    padding: 28px;
+    margin-bottom: 20px;
+    animation: fadeUp 0.4s ease both;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .income-label {
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+  }
+  .income-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .income-row:focus-within { border-color: var(--teal-mid); }
+  .euro {
+    font-size: 22px;
+    font-weight: 300;
+    color: var(--text-muted);
+    padding: 0 14px;
+    background: #f7f7f5;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    border-right: 1.5px solid var(--border);
+    user-select: none;
+  }
+  .income-row input[type=number] {
+    font-family: 'DM Serif Display', serif;
+    font-size: 32px;
+    font-weight: 400;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--text);
+    padding: 0 16px;
+    flex: 1;
+    height: 56px;
+    width: 100%;
+    -moz-appearance: textfield;
+  }
+  .income-row input[type=number]::-webkit-inner-spin-button,
+  .income-row input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+  .freq-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+  .freq-row label { font-size: 12px; color: var(--text-muted); font-weight: 400; align-self: center; margin-right: 2px; }
+  .freq-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    padding: 6px 14px;
+    border-radius: 100px;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .freq-btn:hover { border-color: var(--teal-mid); color: var(--teal); }
+  .freq-btn.active {
+    background: var(--teal);
+    color: white;
+    border-color: var(--teal);
+  }
+
+  /* Bar */
+  .bar-wrap { margin-bottom: 20px; animation: fadeUp 0.4s 0.08s ease both; }
+  .bar-track {
+    height: 10px;
+    border-radius: 6px;
+    background: #ebebeb;
+    display: flex;
+    gap: 3px;
+    overflow: hidden;
+  }
+  .bar-seg { height: 100%; transition: width 0.35s cubic-bezier(.4,0,.2,1); }
+  .bar-needs  { background: var(--teal); }
+  .bar-wants  { background: var(--purple); }
+  .bar-savings{ background: var(--amber); }
+  .bar-legend {
+    display: flex;
+    gap: 18px;
+    margin-top: 10px;
+    flex-wrap: wrap;
+  }
+  .leg-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .leg-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  /* Result cards */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0,1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+    animation: fadeUp 0.4s 0.12s ease both;
+  }
+  @media (max-width: 520px) {
+    .cards { grid-template-columns: 1fr; }
+  }
+  .cat-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    border-top: 3px solid transparent;
+    transition: transform 0.15s;
+  }
+  .cat-card:hover { transform: translateY(-2px); }
+  .cat-card.needs  { border-top-color: var(--teal); }
+  .cat-card.wants  { border-top-color: var(--purple); }
+  .cat-card.savings{ border-top-color: var(--amber); }
+
+  .card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .card-pct-badge {
+    font-size: 12px;
+    font-weight: 500;
+    padding: 3px 10px;
+    border-radius: 100px;
+  }
+  .needs  .card-pct-badge { background: var(--teal-light); color: var(--teal); }
+  .wants  .card-pct-badge { background: var(--purple-light); color: var(--purple); }
+  .savings .card-pct-badge { background: var(--amber-light); color: var(--amber); }
+
+  .card-icon { font-size: 20px; }
+
+  .card-name {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 400;
+    margin-bottom: 6px;
+  }
+  .card-amount {
+    font-family: 'DM Serif Display', serif;
+    font-size: 30px;
+    font-weight: 400;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .card-day {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  /* Sliders */
+  .sliders-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    padding: 24px 28px;
+    margin-bottom: 20px;
+    animation: fadeUp 0.4s 0.16s ease both;
+  }
+  .sliders-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 18px;
+  }
+  .warning-msg {
+    display: none;
+    font-size: 12px;
+    color: #c0392b;
+    background: #fdecea;
+    border-radius: var(--radius-sm);
+    padding: 8px 12px;
+    margin-bottom: 14px;
+  }
+  .warning-msg.show { display: block; }
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .slider-row:last-child { margin-bottom: 0; }
+  .sl-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .sl-needs   { background: var(--teal); }
+  .sl-wants   { background: var(--purple); }
+  .sl-savings { background: var(--amber); }
+  .sl-label {
+    font-size: 13px;
+    color: var(--text-muted);
+    min-width: 88px;
+  }
+  .slider-row input[type=range] {
+    flex: 1;
+    accent-color: var(--teal);
+    height: 4px;
+    cursor: pointer;
+  }
+  .slider-row.wants input[type=range]  { accent-color: var(--purple); }
+  .slider-row.savings input[type=range]{ accent-color: var(--amber); }
+  .sl-val {
+    font-size: 13px;
+    font-weight: 500;
+    min-width: 38px;
+    text-align: right;
+    color: var(--text);
+  }
+
+  /* Info grid */
+  .info-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    padding: 24px 28px;
+    animation: fadeUp 0.4s 0.2s ease both;
+  }
+  .info-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 16px;
+  }
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+  @media (max-width: 460px) {
+    .info-grid { grid-template-columns: 1fr; }
+  }
+  .info-block {
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+  }
+  .info-block-head {
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+  .needs-head  { color: var(--teal); }
+  .wants-head  { color: var(--purple); }
+  .savings-head{ color: var(--amber); }
+  .tips-head   { color: var(--text-muted); }
+  .info-block ul {
+    list-style: none;
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.8;
+  }
+  .info-block ul li::before {
+    content: '·';
+    margin-right: 6px;
+    opacity: 0.5;
+  }
+
+  /* Footer */
+  .tool-footer {
+    text-align: center;
+    padding: 20px 0 0;
+    font-size: 12px;
+    color: var(--text-muted);
+    animation: fadeUp 0.4s 0.24s ease both;
+  }
+  .tool-footer a { color: var(--teal); text-decoration: none; }
+  .tool-footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <a class="site-logo" href="https://slimgeldbewust.nl">SlimGeldBewust<span>— Financiële tools</span></a>
+</header>
+
+<div class="hero">
+  <div class="hero-tag">Gratis tool</div>
+  <h1>De 50/30/20<br><em>Budgetverdeler</em></h1>
+  <p>Vul je netto inkomen in en zie direct hoeveel je kunt besteden aan behoeften, wensen en sparen.</p>
+</div>
+
+<div class="container">
+
+  <!-- Inkomen -->
+  <div class="income-card">
+    <div class="income-label">Jouw netto inkomen</div>
+    <div class="income-row">
+      <span class="euro">€</span>
+      <input type="number" id="income" value="3000" min="0" step="50" placeholder="0" />
+    </div>
+    <div class="freq-row">
+      <label>Uitbetaald per:</label>
+      <button class="freq-btn active" data-freq="1" onclick="setFreq(this)">Maand</button>
+      <button class="freq-btn" data-freq="2.17" onclick="setFreq(this)">2 weken</button>
+      <button class="freq-btn" data-freq="4.33" onclick="setFreq(this)">Week</button>
+    </div>
+  </div>
+
+  <!-- Bar -->
+  <div class="bar-wrap">
+    <div class="bar-track">
+      <div class="bar-seg bar-needs"   id="bar-needs"   style="width:50%"></div>
+      <div class="bar-seg bar-wants"   id="bar-wants"   style="width:30%"></div>
+      <div class="bar-seg bar-savings" id="bar-savings" style="width:20%"></div>
+    </div>
+    <div class="bar-legend">
+      <div class="leg-item"><span class="leg-dot" style="background:var(--teal)"></span> Behoeften</div>
+      <div class="leg-item"><span class="leg-dot" style="background:var(--purple)"></span> Wensen</div>
+      <div class="leg-item"><span class="leg-dot" style="background:var(--amber)"></span> Sparen</div>
+    </div>
+  </div>
+
+  <!-- Resultaat cards -->
+  <div class="cards">
+    <div class="cat-card needs">
+      <div class="card-top">
+        <span class="card-pct-badge" id="badge-needs">50%</span>
+        <span class="card-icon">🏠</span>
+      </div>
+      <div class="card-name">Behoeften</div>
+      <div class="card-amount" id="needs-amt">€1.500</div>
+      <div class="card-day" id="needs-day">€50 per dag</div>
+    </div>
+    <div class="cat-card wants">
+      <div class="card-top">
+        <span class="card-pct-badge" id="badge-wants">30%</span>
+        <span class="card-icon">🎯</span>
+      </div>
+      <div class="card-name">Wensen</div>
+      <div class="card-amount" id="wants-amt">€900</div>
+      <div class="card-day" id="wants-day">€30 per dag</div>
+    </div>
+    <div class="cat-card savings">
+      <div class="card-top">
+        <span class="card-pct-badge" id="badge-savings">20%</span>
+        <span class="card-icon">💰</span>
+      </div>
+      <div class="card-name">Sparen</div>
+      <div class="card-amount" id="savings-amt">€600</div>
+      <div class="card-day" id="savings-day">€20 per dag</div>
+    </div>
+  </div>
+
+  <!-- Sliders -->
+  <div class="sliders-card">
+    <div class="sliders-title">Percentages aanpassen</div>
+    <div class="warning-msg" id="warning">⚠ De percentages tellen op tot <span id="total-pct">100</span>%. Pas aan zodat het 100% is.</div>
+    <div class="slider-row needs">
+      <span class="sl-dot sl-needs"></span>
+      <span class="sl-label">Behoeften</span>
+      <input type="range" min="10" max="80" step="1" value="50" id="sl-needs" oninput="updateSlider('needs', this.value)">
+      <span class="sl-val" id="sv-needs">50%</span>
+    </div>
+    <div class="slider-row wants">
+      <span class="sl-dot sl-wants"></span>
+      <span class="sl-label">Wensen</span>
+      <input type="range" min="5" max="60" step="1" value="30" id="sl-wants" oninput="updateSlider('wants', this.value)">
+      <span class="sl-val" id="sv-wants">30%</span>
+    </div>
+    <div class="slider-row savings">
+      <span class="sl-dot sl-savings"></span>
+      <span class="sl-label">Sparen</span>
+      <input type="range" min="5" max="60" step="1" value="20" id="sl-savings" oninput="updateSlider('savings', this.value)">
+      <span class="sl-val" id="sv-savings">20%</span>
+    </div>
+  </div>
+
+  <!-- Info -->
+  <div class="info-card">
+    <div class="info-title">Wat valt er onder elke categorie?</div>
+    <div class="info-grid">
+      <div class="info-block">
+        <div class="info-block-head needs-head">Behoeften (50%)</div>
+        <ul>
+          <li>Huur of hypotheek</li>
+          <li>Boodschappen</li>
+          <li>Verzekeringen</li>
+          <li>Vast abonnementen</li>
+          <li>Vervoer (OV, auto)</li>
+          <li>Zorgkosten</li>
+        </ul>
+      </div>
+      <div class="info-block">
+        <div class="info-block-head wants-head">Wensen (30%)</div>
+        <ul>
+          <li>Restaurants &amp; eten uit</li>
+          <li>Streaming &amp; games</li>
+          <li>Kleding (extra)</li>
+          <li>Vakantie &amp; reizen</li>
+          <li>Hobby's</li>
+          <li>Sport &amp; fitnesss</li>
+        </ul>
+      </div>
+      <div class="info-block">
+        <div class="info-block-head savings-head">Sparen (20%)</div>
+        <ul>
+          <li>Noodfonds (3–6 maanden)</li>
+          <li>Pensioenpotje</li>
+          <li>Beleggen</li>
+          <li>Schulden aflossen</li>
+          <li>Spaardoel</li>
+          <li>Grote aankopen</li>
+        </ul>
+      </div>
+      <div class="info-block">
+        <div class="info-block-head tips-head">Tips</div>
+        <ul>
+          <li>Pas percentages aan op jouw situatie</li>
+          <li>Spaar eerst, geef daarna pas uit</li>
+          <li>Review elk kwartaal je budget</li>
+          <li>Automatiseer je spaarbedrag</li>
+          <li>Bouw eerst een noodfonds op</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="tool-footer">
+    Tool door <a href="https://slimgeldbewust.nl">SlimGeldBewust.nl</a> &mdash; Meer gratis financiële tools &amp; tips
+  </div>
+
+</div>
+
+<script>
+  let freq = 1;
+  const pcts = { needs: 50, wants: 30, savings: 20 };
+
+  function fmt(v) {
+    return '€' + Math.round(v).toLocaleString('nl-NL');
+  }
+
+  function setFreq(btn) {
+    document.querySelectorAll('.freq-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    freq = parseFloat(btn.dataset.freq);
+    recalc();
+  }
+
+  function updateSlider(cat, val) {
+    pcts[cat] = parseInt(val);
+    document.getElementById('sv-' + cat).textContent = val + '%';
+    recalc();
+  }
+
+  function recalc() {
+    const raw = parseFloat(document.getElementById('income').value) || 0;
+    const monthly = raw * freq;
+
+    const n = monthly * pcts.needs / 100;
+    const w = monthly * pcts.wants / 100;
+    const s = monthly * pcts.savings / 100;
+
+    document.getElementById('needs-amt').textContent = fmt(n);
+    document.getElementById('wants-amt').textContent = fmt(w);
+    document.getElementById('savings-amt').textContent = fmt(s);
+    document.getElementById('needs-day').textContent = '€' + Math.round(n / 30) + ' per dag';
+    document.getElementById('wants-day').textContent = '€' + Math.round(w / 30) + ' per dag';
+    document.getElementById('savings-day').textContent = '€' + Math.round(s / 30) + ' per dag';
+
+    document.getElementById('badge-needs').textContent = pcts.needs + '%';
+    document.getElementById('badge-wants').textContent = pcts.wants + '%';
+    document.getElementById('badge-savings').textContent = pcts.savings + '%';
+
+    const total = pcts.needs + pcts.wants + pcts.savings;
+    const warn = document.getElementById('warning');
+    document.getElementById('total-pct').textContent = total;
+    if (total !== 100) {
+      warn.classList.add('show');
+    } else {
+      warn.classList.remove('show');
+    }
+
+    const nd = total > 0 ? pcts.needs / total * 100 : 0;
+    const wd = total > 0 ? pcts.wants / total * 100 : 0;
+    const sd = total > 0 ? pcts.savings / total * 100 : 0;
+    document.getElementById('bar-needs').style.width   = nd + '%';
+    document.getElementById('bar-wants').style.width   = wd + '%';
+    document.getElementById('bar-savings').style.width = sd + '%';
+  }
+
+  document.getElementById('income').addEventListener('input', recalc);
+  recalc();
+</script>
+</body>
+</html>
