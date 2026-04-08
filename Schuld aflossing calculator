@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Schuld Aflossing Calculator | SlimGeldBewust</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --teal:        #0F6E56;
+    --teal-mid:    #1D9E75;
+    --teal-light:  #E1F5EE;
+    --teal-soft:   #9FE1CB;
+    --amber:       #BA7517;
+    --amber-light: #FAEEDA;
+    --amber-mid:   #EF9F27;
+    --red:         #A32D2D;
+    --red-light:   #FCEBEB;
+    --red-mid:     #E24B4A;
+    --purple:      #534AB7;
+    --purple-light:#EEEDFE;
+    --text:        #1a1a1a;
+    --text-muted:  #6b7280;
+    --bg:          #fafaf8;
+    --surface:     #ffffff;
+    --border:      rgba(0,0,0,0.08);
+    --radius:      16px;
+    --radius-sm:   10px;
+  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  .site-header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 24px; }
+  .site-logo { font-family: 'DM Serif Display', serif; font-size: 18px; color: var(--teal); text-decoration: none; }
+  .site-logo span { color: var(--text-muted); font-size: 14px; font-family: 'DM Sans', sans-serif; font-weight: 300; margin-left: 10px; }
+
+  .hero { background: var(--red); color: white; padding: 52px 24px 72px; text-align: center; position: relative; overflow: hidden; }
+  .hero::before { content:''; position:absolute; width:480px; height:480px; border-radius:50%; background:rgba(255,255,255,0.04); top:-160px; right:-100px; }
+  .hero::after  { content:''; position:absolute; width:320px; height:320px; border-radius:50%; background:rgba(255,255,255,0.04); bottom:-100px; left:-60px; }
+  .hero-tag { display:inline-block; background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.2); border-radius:100px; font-size:11px; font-weight:500; letter-spacing:0.07em; padding:5px 14px; margin-bottom:18px; text-transform:uppercase; }
+  .hero h1 { font-family:'DM Serif Display',serif; font-size:clamp(30px,6vw,52px); font-weight:400; line-height:1.15; margin-bottom:14px; }
+  .hero h1 em { font-style:italic; opacity:0.75; }
+  .hero p { font-size:16px; font-weight:300; opacity:0.8; max-width:500px; margin:0 auto; line-height:1.65; }
+
+  .container { max-width:760px; margin:-32px auto 0; padding:0 20px 64px; position:relative; z-index:10; }
+
+  .card { background:var(--surface); border-radius:var(--radius); box-shadow:0 4px 24px rgba(0,0,0,0.08); padding:28px; margin-bottom:18px; animation:fadeUp 0.4s ease both; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+  .card-title { font-size:11px; font-weight:500; text-transform:uppercase; letter-spacing:0.07em; color:var(--text-muted); margin-bottom:18px; }
+
+  /* Debt list */
+  .debt-list { display:flex; flex-direction:column; gap:12px; margin-bottom:16px; }
+  .debt-row {
+    display:grid;
+    grid-template-columns: 1fr 110px 100px 110px 36px;
+    gap:8px;
+    align-items:end;
+  }
+  @media(max-width:600px) {
+    .debt-row { grid-template-columns:1fr 1fr; }
+    .debt-row .del-btn { grid-column:2; justify-self:end; }
+  }
+  .field { display:flex; flex-direction:column; gap:5px; }
+  .field label { font-size:11px; color:var(--text-muted); font-weight:400; white-space:nowrap; }
+  .input-wrap { display:flex; align-items:center; border:1.5px solid var(--border); border-radius:var(--radius-sm); overflow:hidden; transition:border-color 0.2s; }
+  .input-wrap:focus-within { border-color:var(--red-mid); }
+  .input-pre { background:#f7f7f5; border-right:1.5px solid var(--border); padding:0 10px; height:40px; display:flex; align-items:center; font-size:13px; color:var(--text-muted); user-select:none; white-space:nowrap; }
+  .input-wrap input { font-family:'DM Sans',sans-serif; font-size:14px; font-weight:500; border:none; outline:none; background:transparent; color:var(--text); padding:0 10px; height:40px; width:100%; -moz-appearance:textfield; }
+  .input-wrap input::-webkit-inner-spin-button, .input-wrap input::-webkit-outer-spin-button { -webkit-appearance:none; }
+
+  .del-btn { width:36px; height:40px; border-radius:var(--radius-sm); border:1.5px solid var(--border); background:transparent; color:var(--text-muted); cursor:pointer; font-size:16px; display:flex; align-items:center; justify-content:center; transition:all 0.15s; flex-shrink:0; }
+  .del-btn:hover { background:var(--red-light); border-color:var(--red-mid); color:var(--red); }
+
+  .add-btn { font-family:'DM Sans',sans-serif; font-size:13px; padding:8px 16px; border-radius:100px; border:1.5px dashed var(--border); background:transparent; color:var(--text-muted); cursor:pointer; transition:all 0.15s; }
+  .add-btn:hover { border-color:var(--red-mid); color:var(--red); }
+
+  /* Strategy picker */
+  .strategy-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+  @media(max-width:480px) { .strategy-grid { grid-template-columns:1fr; } }
+  .strat-card { border:1.5px solid var(--border); border-radius:var(--radius-sm); padding:14px 16px; cursor:pointer; transition:all 0.18s; }
+  .strat-card:hover { border-color:var(--red-mid); }
+  .strat-card.active { border-color:var(--red); background:var(--red-light); }
+  .strat-name { font-size:14px; font-weight:500; color:var(--text); margin-bottom:4px; }
+  .strat-desc { font-size:12px; color:var(--text-muted); line-height:1.5; }
+  .strat-card.active .strat-name { color:var(--red); }
+
+  /* Extra betaling */
+  .extra-row { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .extra-row label { font-size:12px; color:var(--text-muted); white-space:nowrap; }
+  .extra-input-wrap { display:flex; align-items:center; border:1.5px solid var(--border); border-radius:var(--radius-sm); overflow:hidden; transition:border-color 0.2s; width:160px; }
+  .extra-input-wrap:focus-within { border-color:var(--red-mid); }
+  .extra-input-wrap input { font-family:'DM Sans',sans-serif; font-size:15px; font-weight:500; border:none; outline:none; background:transparent; color:var(--text); padding:0 10px; height:40px; width:100%; -moz-appearance:textfield; }
+  .extra-input-wrap input::-webkit-inner-spin-button, .extra-input-wrap input::-webkit-outer-spin-button { -webkit-appearance:none; }
+
+  /* Metrics */
+  .metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-bottom:18px; animation:fadeUp 0.4s 0.1s ease both; }
+  @media(max-width:480px) { .metrics { grid-template-columns:1fr; } }
+  .metric { background:var(--bg); border-radius:var(--radius-sm); padding:14px 16px; }
+  .metric-label { font-size:12px; color:var(--text-muted); margin-bottom:6px; }
+  .metric-value { font-family:'DM Serif Display',serif; font-size:24px; font-weight:400; color:var(--text); line-height:1; }
+  .metric-value.good { color:var(--teal); }
+  .metric-value.bad  { color:var(--red); }
+  .metric-sub { font-size:11px; color:var(--text-muted); margin-top:4px; }
+
+  /* Saving badge */
+  .saving-banner { display:none; background:var(--teal-light); border-radius:var(--radius-sm); padding:12px 16px; margin-bottom:18px; animation:fadeUp 0.35s ease both; }
+  .saving-banner.show { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .saving-banner .sb-icon { font-size:20px; }
+  .saving-banner .sb-text { font-size:13px; color:var(--teal); line-height:1.5; }
+  .saving-banner .sb-text strong { font-weight:500; }
+
+  /* Chart */
+  .chart-card { background:var(--surface); border-radius:var(--radius); box-shadow:0 4px 24px rgba(0,0,0,0.08); padding:28px; margin-bottom:18px; animation:fadeUp 0.4s 0.14s ease both; }
+  .chart-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; flex-wrap:wrap; gap:10px; }
+  .chart-title { font-size:11px; font-weight:500; text-transform:uppercase; letter-spacing:0.07em; color:var(--text-muted); }
+  .chart-legend { display:flex; gap:16px; flex-wrap:wrap; }
+  .leg { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text-muted); }
+  .leg-sq { width:10px; height:10px; border-radius:2px; }
+
+  /* Schedule table */
+  .tbl-wrap { overflow-x:auto; }
+  .schedule-table { width:100%; border-collapse:collapse; font-size:13px; }
+  .schedule-table th { text-align:left; font-size:11px; font-weight:500; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-muted); border-bottom:1px solid var(--border); padding:0 8px 10px; white-space:nowrap; }
+  .schedule-table th:not(:first-child) { text-align:right; }
+  .schedule-table td { padding:9px 8px; border-bottom:1px solid var(--border); color:var(--text); vertical-align:middle; }
+  .schedule-table td:not(:first-child) { text-align:right; }
+  .schedule-table tr:last-child td { border-bottom:none; font-weight:500; }
+  .schedule-table tr:hover td { background:var(--bg); }
+  .badge-debt { font-size:11px; padding:2px 8px; border-radius:100px; background:var(--red-light); color:var(--red); white-space:nowrap; display:inline-block; }
+  .badge-done { font-size:11px; padding:2px 8px; border-radius:100px; background:var(--teal-light); color:var(--teal); white-space:nowrap; display:inline-block; }
+
+  .no-debt { text-align:center; padding:32px; color:var(--text-muted); font-size:14px; }
+
+  .tool-footer { text-align:center; padding:16px 0 0; font-size:12px; color:var(--text-muted); animation:fadeUp 0.4s 0.22s ease both; }
+  .tool-footer a { color:var(--red); text-decoration:none; }
+  .tool-footer a:hover { text-decoration:underline; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <a class="site-logo" href="https://slimgeldbewust.nl">SlimGeldBewust<span>— Financiële tools</span></a>
+</header>
+
+<div class="hero">
+  <div class="hero-tag">Gratis tool</div>
+  <h1>Schuld aflossing<br><em>Calculator</em></h1>
+  <p>Voer al je schulden in en ontdek wanneer je schuldenvrij bent — en hoeveel rente je bespaart.</p>
+</div>
+
+<div class="container">
+
+  <!-- Schulden invoer -->
+  <div class="card">
+    <div class="card-title">Jouw schulden</div>
+    <div class="debt-list" id="debtList"></div>
+    <button class="add-btn" onclick="addDebt()">+ Schuld toevoegen</button>
+  </div>
+
+  <!-- Extra betaling -->
+  <div class="card" style="animation-delay:0.04s;">
+    <div class="card-title">Extra maandelijkse betaling</div>
+    <div class="extra-row">
+      <label>Bovenop de minimale betalingen:</label>
+      <div class="extra-input-wrap">
+        <span class="input-pre" style="background:#f7f7f5;border-right:1.5px solid var(--border);padding:0 10px;height:40px;display:flex;align-items:center;font-size:13px;color:var(--text-muted);">€</span>
+        <input type="number" id="extra" value="0" min="0" step="50" oninput="recalc()">
+      </div>
+    </div>
+  </div>
+
+  <!-- Strategie -->
+  <div class="card" style="animation-delay:0.08s;">
+    <div class="card-title">Aflossingstrategie</div>
+    <div class="strategy-grid">
+      <div class="strat-card active" data-strat="avalanche" onclick="setStrat(this)">
+        <div class="strat-name">Avalanche methode</div>
+        <div class="strat-desc">Betaal eerst de schuld met de hoogste rente af. Bespaart het meeste geld.</div>
+      </div>
+      <div class="strat-card" data-strat="snowball" onclick="setStrat(this)">
+        <div class="strat-name">Snowball methode</div>
+        <div class="strat-desc">Betaal eerst de kleinste schuld af. Geeft sneller psychologische overwinningen.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Metrics -->
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">Schuldenvrij over</div>
+      <div class="metric-value bad" id="m-months">—</div>
+      <div class="metric-sub" id="m-date">—</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Totale rente</div>
+      <div class="metric-value bad" id="m-interest">€0</div>
+      <div class="metric-sub" id="m-interest-sub">totale kosten</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Totaal te betalen</div>
+      <div class="metric-value" id="m-total">€0</div>
+      <div class="metric-sub">schuld + rente</div>
+    </div>
+  </div>
+
+  <!-- Besparing banner -->
+  <div class="saving-banner" id="savingBanner">
+    <span class="sb-icon">💡</span>
+    <div class="sb-text" id="savingText"></div>
+  </div>
+
+  <!-- Chart -->
+  <div class="chart-card">
+    <div class="chart-header">
+      <div class="chart-title">Schuld afname in de tijd</div>
+      <div class="chart-legend">
+        <div class="leg"><span class="leg-sq" style="background:#E24B4A"></span>Openstaand saldo</div>
+        <div class="leg"><span class="leg-sq" style="background:#FAEEDA"></span>Betaalde rente (cumulatief)</div>
+      </div>
+    </div>
+    <div style="position:relative;width:100%;height:280px;">
+      <canvas id="debtChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Aflossingsschema -->
+  <div class="card" style="animation-delay:0.18s;">
+    <div class="card-title">Aflossingsschema per schuld</div>
+    <div class="tbl-wrap">
+      <table class="schedule-table">
+        <thead>
+          <tr>
+            <th>Schuld</th>
+            <th>Huidig saldo</th>
+            <th>Rente</th>
+            <th>Min. betaling</th>
+            <th>Betaald in</th>
+            <th>Totale rente</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="scheduleBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="tool-footer">
+    Tool door <a href="https://slimgeldbewust.nl">SlimGeldBewust.nl</a> &mdash; Meer gratis financiële tools &amp; tips
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+  let debts = [
+    { id:1, name:'Creditcard', balance:3500, rate:19.9, minPay:70 },
+    { id:2, name:'Persoonlijke lening', balance:8000, rate:6.5, minPay:180 },
+    { id:3, name:'Studieschuld', balance:15000, rate:2.5, minPay:200 },
+  ];
+  let nextId = 4;
+  let strategy = 'avalanche';
+  let chart = null;
+
+  function fmtEur(v) {
+    return '€' + Math.round(v).toLocaleString('nl-NL');
+  }
+  function fmtEurDec(v) {
+    return '€' + v.toLocaleString('nl-NL', {minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+
+  function setStrat(el) {
+    document.querySelectorAll('.strat-card').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    strategy = el.dataset.strat;
+    recalc();
+  }
+
+  function addDebt() {
+    debts.push({ id: nextId++, name: 'Nieuwe schuld', balance: 1000, rate: 10, minPay: 50 });
+    renderDebtList();
+    recalc();
+  }
+
+  function removeDebt(id) {
+    debts = debts.filter(d => d.id !== id);
+    renderDebtList();
+    recalc();
+  }
+
+  function renderDebtList() {
+    const list = document.getElementById('debtList');
+    list.innerHTML = '';
+    if (debts.length === 0) {
+      list.innerHTML = '<div class="no-debt">Voeg een schuld toe om te beginnen.</div>';
+      return;
+    }
+    debts.forEach(d => {
+      const row = document.createElement('div');
+      row.className = 'debt-row';
+      row.innerHTML = `
+        <div class="field">
+          <label>Naam</label>
+          <div class="input-wrap"><input type="text" value="${d.name}" oninput="updateDebt(${d.id},'name',this.value)"></div>
+        </div>
+        <div class="field">
+          <label>Saldo</label>
+          <div class="input-wrap"><span class="input-pre">€</span><input type="number" value="${d.balance}" min="0" step="100" oninput="updateDebt(${d.id},'balance',+this.value)"></div>
+        </div>
+        <div class="field">
+          <label>Rente %</label>
+          <div class="input-wrap"><span class="input-pre">%</span><input type="number" value="${d.rate}" min="0" max="100" step="0.1" oninput="updateDebt(${d.id},'rate',+this.value)"></div>
+        </div>
+        <div class="field">
+          <label>Min. betaling</label>
+          <div class="input-wrap"><span class="input-pre">€</span><input type="number" value="${d.minPay}" min="1" step="10" oninput="updateDebt(${d.id},'minPay',+this.value)"></div>
+        </div>
+        <button class="del-btn" onclick="removeDebt(${d.id})">×</button>
+      `;
+      list.appendChild(row);
+    });
+  }
+
+  function updateDebt(id, field, val) {
+    const d = debts.find(d => d.id === id);
+    if (d) { d[field] = val; recalc(); }
+  }
+
+  function simulate(debtList, extraPayment, strat) {
+    let pool = debtList.map(d => ({ ...d, remaining: d.balance, totalInterest: 0, paidOffMonth: null }));
+    const totalMinPay = pool.reduce((s,d) => s + d.minPay, 0);
+    const monthlyBudget = totalMinPay + (extraPayment || 0);
+
+    const balanceHistory = [];
+    const interestHistory = [];
+    let month = 0;
+    let cumulativeInterest = 0;
+
+    while (pool.some(d => d.remaining > 0.01) && month < 600) {
+      month++;
+      let budget = monthlyBudget;
+
+      pool.forEach(d => {
+        if (d.remaining <= 0) return;
+        const interest = d.remaining * (d.rate / 100 / 12);
+        d.remaining += interest;
+        d.totalInterest += interest;
+        cumulativeInterest += interest;
+      });
+
+      pool.forEach(d => {
+        if (d.remaining <= 0) return;
+        const pay = Math.min(d.minPay, d.remaining);
+        d.remaining -= pay;
+        budget -= pay;
+        if (d.remaining < 0.01) { d.remaining = 0; if (!d.paidOffMonth) d.paidOffMonth = month; }
+      });
+
+      if (budget > 0.01) {
+        const active = pool.filter(d => d.remaining > 0.01);
+        if (active.length > 0) {
+          let target;
+          if (strat === 'avalanche') {
+            target = active.reduce((a, b) => b.rate > a.rate ? b : a);
+          } else {
+            target = active.reduce((a, b) => b.remaining < a.remaining ? b : a);
+          }
+          const pay = Math.min(budget, target.remaining);
+          target.remaining -= pay;
+          if (target.remaining < 0.01) { target.remaining = 0; if (!target.paidOffMonth) target.paidOffMonth = month; }
+        }
+      }
+
+      balanceHistory.push(Math.round(pool.reduce((s,d) => s + d.remaining, 0)));
+      interestHistory.push(Math.round(cumulativeInterest));
+    }
+
+    pool.forEach(d => { if (!d.paidOffMonth && d.remaining < 0.01) d.paidOffMonth = month; });
+    return { pool, months: month, balanceHistory, interestHistory, totalInterest: cumulativeInterest };
+  }
+
+  function recalc() {
+    if (debts.length === 0) {
+      document.getElementById('m-months').textContent = '—';
+      document.getElementById('m-date').textContent = '—';
+      document.getElementById('m-interest').textContent = '€0';
+      document.getElementById('m-total').textContent = '€0';
+      document.getElementById('scheduleBody').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-muted);">Voeg schulden toe.</td></tr>';
+      document.getElementById('savingBanner').classList.remove('show');
+      if (chart) { chart.data.labels=[]; chart.data.datasets.forEach(d=>d.data=[]); chart.update('none'); }
+      return;
+    }
+
+    const extra = parseFloat(document.getElementById('extra').value) || 0;
+    const result = simulate(debts, extra, strategy);
+    const resultNoExtra = extra > 0 ? simulate(debts, 0, strategy) : null;
+
+    const totalDebt = debts.reduce((s,d) => s + d.balance, 0);
+    const months = result.months;
+    const yrs = Math.floor(months / 12);
+    const mo  = months % 12;
+    const monthStr = yrs > 0
+      ? (yrs + ' jaar' + (mo > 0 ? ' en ' + mo + ' maand' + (mo>1?'en':'') : ''))
+      : (months + ' maand' + (months>1?'en':''));
+
+    const now = new Date();
+    const endDate = new Date(now.getFullYear(), now.getMonth() + months, 1);
+    const maanden = ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
+    const dateStr = maanden[endDate.getMonth()] + ' ' + endDate.getFullYear();
+
+    document.getElementById('m-months').textContent = monthStr;
+    document.getElementById('m-date').textContent   = 'Vrij in ' + dateStr;
+    document.getElementById('m-interest').textContent = fmtEur(result.totalInterest);
+    document.getElementById('m-interest-sub').textContent = Math.round(result.totalInterest / totalDebt * 100) + '% van je schuld';
+    document.getElementById('m-total').textContent  = fmtEur(totalDebt + result.totalInterest);
+
+    const banner = document.getElementById('savingBanner');
+    if (resultNoExtra && extra > 0) {
+      const savedInterest = resultNoExtra.totalInterest - result.totalInterest;
+      const savedMonths   = resultNoExtra.months - result.months;
+      const savedYrs = Math.floor(savedMonths / 12);
+      const savedMo  = savedMonths % 12;
+      const savedTimeStr = savedYrs > 0
+        ? savedYrs + ' jaar' + (savedMo > 0 ? ' en ' + savedMo + ' maanden' : '')
+        : savedMonths + ' maanden';
+      document.getElementById('savingText').innerHTML =
+        '<strong>Door €' + Math.round(extra).toLocaleString('nl-NL') + ' extra per maand te betalen</strong> ben je ' +
+        savedTimeStr + ' eerder schuldenvrij en bespaar je <strong>' + fmtEur(savedInterest) + ' aan rente</strong>.';
+      banner.classList.add('show');
+    } else {
+      banner.classList.remove('show');
+    }
+
+    const maxLabels = 60;
+    const step = Math.max(1, Math.ceil(result.balanceHistory.length / maxLabels));
+    const labels = [], balData = [], intData = [];
+    result.balanceHistory.forEach((v, i) => {
+      if (i % step === 0 || i === result.balanceHistory.length - 1) {
+        labels.push('Maand ' + (i+1));
+        balData.push(v);
+        intData.push(result.interestHistory[i]);
+      }
+    });
+
+    if (chart) {
+      chart.data.labels = labels;
+      chart.data.datasets[0].data = balData;
+      chart.data.datasets[1].data = intData;
+      chart.update('none');
+    } else {
+      chart = new Chart(document.getElementById('debtChart'), {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            { label: 'Openstaand saldo', data: balData, borderColor: '#E24B4A', backgroundColor: '#FCEBEB', fill: true, tension: 0.3, pointRadius: 0, borderWidth: 2 },
+            { label: 'Betaalde rente', data: intData, borderColor: '#EF9F27', backgroundColor: 'transparent', fill: false, tension: 0.3, pointRadius: 0, borderWidth: 2, borderDash: [4,3] }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: ctx => ' ' + ctx.dataset.label + ': ' + fmtEur(ctx.parsed.y)
+              }
+            }
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: '#6b7280', font: { size: 11 }, maxTicksLimit: 10 } },
+            y: { grid: { color: 'rgba(0,0,0,0.05)' }, border: { display: false }, ticks: { color: '#6b7280', font: { size: 11 }, callback: v => v >= 1000 ? '€' + Math.round(v/1000) + 'K' : '€' + v } }
+          }
+        }
+      });
+    }
+
+    const tbody = document.getElementById('scheduleBody');
+    tbody.innerHTML = '';
+    const sorted = [...result.pool].sort((a,b) => (a.paidOffMonth||999) - (b.paidOffMonth||999));
+    sorted.forEach(d => {
+      const pm = d.paidOffMonth || months;
+      const ym = Math.floor(pm/12);
+      const mm = pm % 12;
+      const timeStr = ym > 0 ? ym + 'j ' + (mm>0?mm+'m':'') : mm + ' mnd';
+      const tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td><strong>' + d.name + '</strong></td>' +
+        '<td>' + fmtEur(d.balance) + '</td>' +
+        '<td>' + d.rate.toFixed(1) + '%</td>' +
+        '<td>' + fmtEur(d.minPay) + '</td>' +
+        '<td>' + timeStr + '</td>' +
+        '<td>' + fmtEur(d.totalInterest) + '</td>' +
+        '<td><span class="badge-done">Afgelost</span></td>';
+      tbody.appendChild(tr);
+    });
+  }
+
+  renderDebtList();
+  recalc();
+</script>
+</body>
+</html>
