@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rente op Rente Visualiser | SlimGeldBewust</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --teal:        #0F6E56;
+    --teal-mid:    #1D9E75;
+    --teal-light:  #E1F5EE;
+    --teal-soft:   #9FE1CB;
+    --amber:       #BA7517;
+    --amber-light: #FAEEDA;
+    --amber-mid:   #EF9F27;
+    --purple:      #534AB7;
+    --purple-light:#EEEDFE;
+    --text:        #1a1a1a;
+    --text-muted:  #6b7280;
+    --bg:          #fafaf8;
+    --surface:     #ffffff;
+    --border:      rgba(0,0,0,0.08);
+    --radius:      16px;
+    --radius-sm:   10px;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  .site-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 24px;
+  }
+  .site-logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px;
+    color: var(--teal);
+    text-decoration: none;
+  }
+  .site-logo span {
+    color: var(--text-muted);
+    font-size: 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    margin-left: 10px;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    background: var(--teal);
+    color: white;
+    padding: 52px 24px 72px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    width: 480px; height: 480px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+    top: -160px; right: -100px;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    width: 320px; height: 320px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+    bottom: -100px; left: -60px;
+  }
+  .hero-tag {
+    display: inline-block;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.07em;
+    padding: 5px 14px;
+    margin-bottom: 18px;
+    text-transform: uppercase;
+  }
+  .hero h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(30px, 6vw, 52px);
+    font-weight: 400;
+    line-height: 1.15;
+    margin-bottom: 14px;
+  }
+  .hero h1 em { font-style: italic; opacity: 0.75; }
+  .hero p {
+    font-size: 16px;
+    font-weight: 300;
+    opacity: 0.8;
+    max-width: 500px;
+    margin: 0 auto;
+    line-height: 1.65;
+  }
+
+  /* ── Container ── */
+  .container {
+    max-width: 760px;
+    margin: -32px auto 0;
+    padding: 0 20px 64px;
+    position: relative;
+    z-index: 10;
+  }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    padding: 28px;
+    margin-bottom: 18px;
+    animation: fadeUp 0.4s ease both;
+  }
+  .card:nth-child(2) { animation-delay: 0.06s; }
+  .card:nth-child(3) { animation-delay: 0.12s; }
+  .card:nth-child(4) { animation-delay: 0.18s; }
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(14px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  .card-title {
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-muted);
+    margin-bottom: 18px;
+  }
+
+  /* ── Inputs grid ── */
+  .inputs-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  @media (max-width: 500px) { .inputs-grid { grid-template-columns: 1fr; } }
+
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 12px; color: var(--text-muted); font-weight: 400; }
+  .input-wrap {
+    display: flex;
+    align-items: center;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .input-wrap:focus-within { border-color: var(--teal-mid); }
+  .input-pre {
+    background: #f7f7f5;
+    border-right: 1.5px solid var(--border);
+    padding: 0 12px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+    color: var(--text-muted);
+    user-select: none;
+    white-space: nowrap;
+  }
+  .input-wrap input[type=number],
+  .input-wrap input[type=text] {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: var(--text);
+    padding: 0 12px;
+    height: 44px;
+    width: 100%;
+    -moz-appearance: textfield;
+  }
+  .input-wrap input[type=number]::-webkit-inner-spin-button,
+  .input-wrap input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
+
+  .slider-field { display: flex; flex-direction: column; gap: 6px; }
+  .slider-field label {
+    font-size: 12px; color: var(--text-muted);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .slider-field label span { font-weight: 500; color: var(--text); font-size: 14px; }
+  .slider-field input[type=range] { width: 100%; accent-color: var(--teal); cursor: pointer; }
+
+  .freq-row { display: flex; gap: 8px; margin-top: 4px; flex-wrap: wrap; }
+  .freq-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    padding: 5px 12px;
+    border-radius: 100px;
+    border: 1.5px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .freq-btn:hover { border-color: var(--teal-mid); color: var(--teal); }
+  .freq-btn.active { background: var(--teal); color: white; border-color: var(--teal); }
+
+  /* ── Summary metrics ── */
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0,1fr));
+    gap: 12px;
+    margin-bottom: 18px;
+    animation: fadeUp 0.4s 0.08s ease both;
+  }
+  @media (max-width: 480px) { .metrics { grid-template-columns: 1fr; } }
+  .metric {
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+  }
+  .metric-label { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+  .metric-value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 26px;
+    font-weight: 400;
+    color: var(--text);
+    line-height: 1;
+  }
+  .metric-value.highlight { color: var(--teal); }
+  .metric-sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+  /* ── Chart ── */
+  .chart-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    padding: 28px;
+    margin-bottom: 18px;
+    animation: fadeUp 0.4s 0.14s ease both;
+  }
+  .chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .chart-title { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-muted); }
+  .chart-legend { display: flex; gap: 16px; flex-wrap: wrap; }
+  .leg { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
+  .leg-sq { width: 10px; height: 10px; border-radius: 2px; }
+
+  /* ── Milestone table ── */
+  .milestone-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .milestone-table th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+    padding: 0 8px 10px;
+  }
+  .milestone-table th:not(:first-child) { text-align: right; }
+  .milestone-table td {
+    padding: 10px 8px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+    vertical-align: middle;
+  }
+  .milestone-table td:not(:first-child) { text-align: right; }
+  .milestone-table tr:last-child td { border-bottom: none; }
+  .milestone-table tr:hover td { background: var(--bg); }
+  .td-year { font-weight: 500; }
+  .td-total { font-weight: 500; color: var(--teal); }
+  .td-gain {
+    font-size: 11px;
+    padding: 2px 7px;
+    border-radius: 100px;
+    background: var(--teal-light);
+    color: var(--teal);
+    white-space: nowrap;
+    display: inline-block;
+  }
+
+  /* ── Footer ── */
+  .tool-footer {
+    text-align: center;
+    padding: 16px 0 0;
+    font-size: 12px;
+    color: var(--text-muted);
+    animation: fadeUp 0.4s 0.22s ease both;
+  }
+  .tool-footer a { color: var(--teal); text-decoration: none; }
+  .tool-footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <a class="site-logo" href="https://slimgeldbewust.nl">SlimGeldBewust<span>— Financiële tools</span></a>
+</header>
+
+<div class="hero">
+  <div class="hero-tag">Gratis tool</div>
+  <h1>Rente op rente<br><em>Visualiser</em></h1>
+  <p>Zie hoe jouw geld exponentieel groeit door het 8e wereldwonder: samengestelde rente.</p>
+</div>
+
+<div class="container">
+
+  <!-- Inputs -->
+  <div class="card">
+    <div class="card-title">Jouw instellingen</div>
+    <div class="inputs-grid" style="margin-bottom:18px;">
+      <div class="field">
+        <label>Startbedrag</label>
+        <div class="input-wrap">
+          <span class="input-pre">€</span>
+          <input type="number" id="principal" value="10000" min="0" step="500">
+        </div>
+      </div>
+      <div class="field">
+        <label>Maandelijkse inleg</label>
+        <div class="input-wrap">
+          <span class="input-pre">€</span>
+          <input type="number" id="monthly" value="200" min="0" step="50">
+        </div>
+      </div>
+    </div>
+    <div class="inputs-grid" style="margin-bottom:18px;">
+      <div class="slider-field">
+        <label>Jaarlijks rendement <span id="rate-val">7%</span></label>
+        <input type="range" id="rate" min="1" max="20" step="0.5" value="7">
+      </div>
+      <div class="slider-field">
+        <label>Looptijd <span id="years-val">20 jaar</span></label>
+        <input type="range" id="years" min="1" max="50" step="1" value="20">
+      </div>
+    </div>
+    <div class="field">
+      <label>Rente aangroeien</label>
+      <div class="freq-row">
+        <button class="freq-btn" data-n="1"  onclick="setComp(this)">Jaarlijks</button>
+        <button class="freq-btn" data-n="4"  onclick="setComp(this)">Kwartaal</button>
+        <button class="freq-btn active" data-n="12" onclick="setComp(this)">Maandelijks</button>
+        <button class="freq-btn" data-n="365" onclick="setComp(this)">Dagelijks</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Metrics -->
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">Eindwaarde</div>
+      <div class="metric-value highlight" id="m-total">€0</div>
+      <div class="metric-sub" id="m-total-sub">na 20 jaar</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Zelf ingelegd</div>
+      <div class="metric-value" id="m-invested">€0</div>
+      <div class="metric-sub" id="m-invested-sub">startbedrag + inleg</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Rente-winst</div>
+      <div class="metric-value" id="m-gain">€0</div>
+      <div class="metric-sub" id="m-gain-pct">0% van eindwaarde</div>
+    </div>
+  </div>
+
+  <!-- Chart -->
+  <div class="chart-card">
+    <div class="chart-header">
+      <div class="chart-title">Groei in de tijd</div>
+      <div class="chart-legend">
+        <div class="leg"><span class="leg-sq" style="background:#0F6E56"></span>Totale waarde</div>
+        <div class="leg"><span class="leg-sq" style="background:#9FE1CB"></span>Ingelegd bedrag</div>
+        <div class="leg"><span class="leg-sq" style="background:#FAEEDA"></span>Rente-winst</div>
+      </div>
+    </div>
+    <div style="position:relative; width:100%; height:280px;">
+      <canvas id="growthChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Milestone table -->
+  <div class="card">
+    <div class="card-title">Overzicht per mijlpaal</div>
+    <div style="overflow-x:auto;">
+      <table class="milestone-table" id="milestoneTable">
+        <thead>
+          <tr>
+            <th>Jaar</th>
+            <th>Ingelegd</th>
+            <th>Rente-winst</th>
+            <th>Totaal</th>
+            <th>Groei vs. inleg</th>
+          </tr>
+        </thead>
+        <tbody id="milestoneBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="tool-footer">
+    Tool door <a href="https://slimgeldbewust.nl">SlimGeldBewust.nl</a> &mdash; Meer gratis financiële tools &amp; tips
+  </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+  let compN = 12;
+  let chart = null;
+
+  function setComp(btn) {
+    document.querySelectorAll('.freq-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    compN = parseInt(btn.dataset.n);
+    recalc();
+  }
+
+  function fmtEur(v) {
+    return '€' + Math.round(v).toLocaleString('nl-NL');
+  }
+
+  function calcData() {
+    const P   = parseFloat(document.getElementById('principal').value) || 0;
+    const pmt = parseFloat(document.getElementById('monthly').value)   || 0;
+    const r   = parseFloat(document.getElementById('rate').value)      / 100;
+    const yrs = parseInt(document.getElementById('years').value);
+    const n   = compN;
+
+    const labels = [];
+    const totals = [];
+    const invested = [];
+
+    for (let y = 0; y <= yrs; y++) {
+      const t = y;
+      const totalVal = P * Math.pow(1 + r/n, n*t)
+        + (pmt > 0 ? pmt * (Math.pow(1 + r/n, n*t) - 1) / (r/n) : 0);
+      const inv = P + pmt * 12 * t;
+      labels.push(y === 0 ? 'Nu' : 'Jaar ' + y);
+      totals.push(Math.round(totalVal));
+      invested.push(Math.round(inv));
+    }
+    return { labels, totals, invested, yrs, P, pmt, r };
+  }
+
+  function recalc() {
+    const rSlider = document.getElementById('rate');
+    const ySlider = document.getElementById('years');
+    document.getElementById('rate-val').textContent  = parseFloat(rSlider.value).toFixed(1).replace('.0','') + '%';
+    document.getElementById('years-val').textContent = ySlider.value + ' jaar';
+
+    const { labels, totals, invested, yrs, P, pmt } = calcData();
+
+    const finalTotal    = totals[totals.length - 1];
+    const finalInvested = invested[invested.length - 1];
+    const finalGain     = finalTotal - finalInvested;
+    const gainPct       = finalTotal > 0 ? Math.round(finalGain / finalTotal * 100) : 0;
+
+    document.getElementById('m-total').textContent      = fmtEur(finalTotal);
+    document.getElementById('m-total-sub').textContent  = 'na ' + yrs + ' jaar';
+    document.getElementById('m-invested').textContent   = fmtEur(finalInvested);
+    document.getElementById('m-invested-sub').textContent = 'startbedrag + inleg';
+    document.getElementById('m-gain').textContent       = fmtEur(finalGain);
+    document.getElementById('m-gain-pct').textContent   = gainPct + '% van eindwaarde';
+
+    const gains = totals.map((t, i) => Math.max(0, t - invested[i]));
+
+    if (chart) {
+      chart.data.labels = labels;
+      chart.data.datasets[0].data = invested;
+      chart.data.datasets[1].data = gains;
+      chart.update('none');
+    } else {
+      chart = new Chart(document.getElementById('growthChart'), {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: 'Ingelegd',
+              data: invested,
+              backgroundColor: '#9FE1CB',
+              stack: 'stack',
+              borderRadius: 2,
+            },
+            {
+              label: 'Rente-winst',
+              data: gains,
+              backgroundColor: '#0F6E56',
+              stack: 'stack',
+              borderRadius: 2,
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: ctx => ' ' + ctx.dataset.label + ': ' + fmtEur(ctx.parsed.y),
+                footer: items => {
+                  const total = items.reduce((s,i) => s + i.parsed.y, 0);
+                  return 'Totaal: ' + fmtEur(total);
+                }
+              }
+            }
+          },
+          scales: {
+            x: {
+              stacked: true,
+              grid: { display: false },
+              ticks: {
+                color: '#6b7280',
+                font: { size: 11 },
+                maxTicksLimit: 11,
+                maxRotation: 0,
+              }
+            },
+            y: {
+              stacked: true,
+              grid: { color: 'rgba(0,0,0,0.05)' },
+              border: { display: false },
+              ticks: {
+                color: '#6b7280',
+                font: { size: 11 },
+                callback: v => v >= 1000000 ? '€' + (v/1000000).toFixed(1) + 'M' : v >= 1000 ? '€' + Math.round(v/1000) + 'K' : '€' + v
+              }
+            }
+          }
+        }
+      });
+    }
+
+    buildMilestones(totals, invested, yrs);
+  }
+
+  function buildMilestones(totals, invested, yrs) {
+    const steps = [1, 2, 3, 5, 10, 15, 20, 25, 30, 40, 50].filter(y => y <= yrs);
+    if (!steps.includes(yrs)) steps.push(yrs);
+
+    const tbody = document.getElementById('milestoneBody');
+    tbody.innerHTML = '';
+    steps.forEach(y => {
+      const t = totals[y];
+      const inv = invested[y];
+      const gain = t - inv;
+      const mult = inv > 0 ? (t / inv).toFixed(2) : '—';
+      const tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td class="td-year">Jaar ' + y + '</td>' +
+        '<td>' + fmtEur(inv) + '</td>' +
+        '<td>' + fmtEur(gain) + '</td>' +
+        '<td class="td-total">' + fmtEur(t) + '</td>' +
+        '<td><span class="td-gain">' + mult + 'x</span></td>';
+      tbody.appendChild(tr);
+    });
+  }
+
+  ['principal','monthly'].forEach(id => {
+    document.getElementById(id).addEventListener('input', recalc);
+  });
+  ['rate','years'].forEach(id => {
+    document.getElementById(id).addEventListener('input', recalc);
+  });
+
+  recalc();
+</script>
+</body>
+</html>
